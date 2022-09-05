@@ -240,18 +240,18 @@ class CashUtility
 
         $response = [
             'date' => DateTimeUtility::getDate($date, SystemSettings::getDateFormat()),
-            'sales' => Yii::$app->formatter->asCurrency($sales + $depositSalesCollection),
-            'salesPaid' => Yii::$app->formatter->asCurrency($salesPaid),
-            'salesDue' => Yii::$app->formatter->asCurrency($due),
-            'dueReceived' => Yii::$app->formatter->asCurrency($dueReceived + $depositDueReceived),
-            'salesReturn' => Yii::$app->formatter->asCurrency($salesReturn + $depositSalesReturn),
-            'cashHand' => Yii::$app->formatter->asCurrency($cashHandReceived),
-            'expense' => Yii::$app->formatter->asCurrency($expense + $depositExpense),
-            'withdraw' => Yii::$app->formatter->asCurrency($withdraw + $depositWithdraw),
-            'cashIn' => Yii::$app->formatter->asCurrency($totalCashIn),
-            'cashOut' => Yii::$app->formatter->asCurrency($totalCashOut),
-            'bankIn' => Yii::$app->formatter->asCurrency($totalDepositIn),
-            'bankOut' => Yii::$app->formatter->asCurrency($totalDepositOut),
+            'sales' => Yii::$app->formatter->asDecimal($sales + $depositSalesCollection),
+            'salesPaid' => Yii::$app->formatter->asDecimal($salesPaid),
+            'salesDue' => Yii::$app->formatter->asDecimal($due),
+            'dueReceived' => Yii::$app->formatter->asDecimal($dueReceived + $depositDueReceived),
+            'salesReturn' => Yii::$app->formatter->asDecimal($salesReturn + $depositSalesReturn),
+            'cashHand' => Yii::$app->formatter->asDecimal($cashHandReceived),
+            'expense' => Yii::$app->formatter->asDecimal($expense + $depositExpense),
+            'withdraw' => Yii::$app->formatter->asDecimal($withdraw + $depositWithdraw),
+            'cashIn' => Yii::$app->formatter->asDecimal($totalCashIn),
+            'cashOut' => Yii::$app->formatter->asDecimal($totalCashOut),
+            'bankIn' => Yii::$app->formatter->asDecimal($totalDepositIn),
+            'bankOut' => Yii::$app->formatter->asDecimal($totalDepositOut),
         ];
 
         return $response;
