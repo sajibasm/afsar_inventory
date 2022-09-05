@@ -78,9 +78,8 @@ class ProductStockController extends Controller
     {
         if (Yii::$app->asm->has()) {
             return parent::beforeAction($event);
-        } else {
-            return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
         }
+        return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
     }
 
     public function actionGetItemByBrand()
@@ -112,11 +111,10 @@ class ProductStockController extends Controller
                 foreach ($brands as $brand) {
                     $out[] = ['id' => $brand->brand_id, 'name' => $brand->brand_name];
                 }
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
         }
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionGetSizeListByBrand()
@@ -131,11 +129,10 @@ class ProductStockController extends Controller
                 foreach ($sizes as $size) {
                     $out[] = ['id' => $size->size_id, 'name' => $size->size_name];
                 }
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
         }
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionGetProductPrice()
@@ -151,8 +148,9 @@ class ProductStockController extends Controller
 
     public function actionExistingPrice($sizeId)
     {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
         if (Yii::$app->request->isGet) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
             $model = ProductItemsPrice::find()->where(['size_id' => $sizeId])->one();
             if ($model) {
                 return [
@@ -181,17 +179,13 @@ class ProductStockController extends Controller
      */
     private function addItemDraft(ProductStockItemsDraft $model, $data = [], $souce = ProductStockItemsDraft::SOURCE_MOVEMENT)
     {
+        Yii::$app->response->format = Response::FORMAT_JSON;
         $model->load($data);
         $model->source = $souce;
-        $data = ['error' => false, 'message' => 'success'];
         if ($model->save()) {
-            $data = ['error' => false, 'message' => 'success'];
-        } else {
-            $data = ['error' => true, 'message' => ActiveForm::validate($model)];
+            return ['error' => false, 'message' => 'success'];
         }
-
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return $data;
+        return ['error' => true, 'message' => ActiveForm::validate($model)];
     }
 
     /**
@@ -267,7 +261,7 @@ class ProductStockController extends Controller
             }
         }
 
-        if(Yii::$app->request->isAjax){
+        if (Yii::$app->request->isAjax) {
             return $this->renderAjax('register/create', [
                 'model' => $model,
                 'productStock' => $productStock,
@@ -293,7 +287,7 @@ class ProductStockController extends Controller
 
         try {
             return PdfGen::stockInvoice(Utility::decrypt($id), false);
-        }catch (\yii\base\Exception $exception){
+        } catch (\yii\base\Exception $exception) {
             dd($exception->getMessage());
             die();
         }
@@ -550,10 +544,10 @@ class ProductStockController extends Controller
                 $data = Yii::$app->request->post();
                 $sizeId = $data['ProductStockItemsDraft']['size_id'];
                 $qty = ProductUtility::getTotalQuantity($sizeId) - ProductUtility::getDraftProductQuantity($sizeId);
-                if($qty>0){
+                if ($qty > 0) {
                     $data['ProductStockItemsDraft']['type'] = ProductStockItemsDraft::TYPE_INSERT;
                     return $this->addItemDraft($model, $data, ProductStockItemsDraft::SOURCE_TRANSFER);
-                }else{
+                } else {
                     //TODO SET Error
                 }
             } else {

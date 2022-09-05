@@ -68,11 +68,10 @@ class SizeController extends Controller
                 foreach($brands as $brand){
                     $out[] = ['id'=>$brand->brand_id, 'name'=>$brand->brand_name];
                 }
-                echo Json::encode(['output'=>$out, 'selected'=>'']);
-                return;
+                return Json::encode(['output'=>$out, 'selected'=>'']);
             }
         }
-        echo Json::encode(['output'=>'', 'selected'=>'']);
+        return Json::encode(['output'=>'', 'selected'=>'']);
     }
 
     /**
@@ -176,8 +175,7 @@ class SizeController extends Controller
     {
         if (($model = Size::findOne($id)) !== null) {
             return $model;
-        } else {
-            throw new NotFoundHttpException('The requested size does not exist.');
         }
+        throw new NotFoundHttpException('The requested size does not exist.');
     }
 }

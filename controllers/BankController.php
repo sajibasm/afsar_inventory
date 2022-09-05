@@ -117,11 +117,10 @@ class BankController extends Controller
                     $out[] = ['id' => $b->branch_id, 'name' =>$b->branch_name];
                 }
 
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
 
-            echo Json::encode(['output' => '', 'selected' => '']);
+            return Json::encode(['output' => '', 'selected' => '']);
     }
     /**
      * Updates an existing Bank model.
@@ -157,8 +156,7 @@ class BankController extends Controller
     {
         if (($model = Bank::findOne($id)) !== null) {
             return $model;
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
         }
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 }

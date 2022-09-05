@@ -44,12 +44,12 @@ class ProductStockMovementController extends Controller
      * @return bool|\yii\web\Response
      * @throws \yii\web\BadRequestHttpException
      */
-    public function beforeAction($event){
-        if(Yii::$app->asm->has()){
+    public function beforeAction($event)
+    {
+        if (Yii::$app->asm->has()) {
             return parent::beforeAction($event);
-        }else{
-            return Yii::$app->user->isGuest? $this->redirect(['/site/login']): $this->redirect(['/site/permission']);
         }
+        return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
     }
 
     public function actionGetItemByBrand()
@@ -81,11 +81,10 @@ class ProductStockMovementController extends Controller
                 foreach ($brands as $brand) {
                     $out[] = ['id' => $brand->brand_id, 'name' => $brand->brand_name];
                 }
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
         }
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionGetSizeListByBrand()
@@ -100,36 +99,32 @@ class ProductStockMovementController extends Controller
                 foreach ($sizes as $size) {
                     $out[] = ['id' => $size->size_id, 'name' => $size->size_name];
                 }
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
         }
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionProductDetailsBySizeId($sizeId)
     {
-        $data = [];
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = ProductItemsPrice::find()->where(['size_id' => $sizeId])->one();
         if ($model) {
-            $data = [
+            return [
                 'error' => false,
                 'costPrice' => number_format($model->cost_price),
                 'wholesalePrice' => number_format($model->wholesale_price),
                 'retailPrice' => number_format($model->retail_price),
                 'alert' => number_format($model->alert_quantity),
             ];
-        } else {
-            $data = [
-                'error' => false,
-                'costPrice' => 0,
-                'wholesalePrice' => 0,
-                'retailPrice' => 0,
-                'alert' => 0,
-            ];
         }
-        return $data;
+        return [
+            'error' => false,
+            'costPrice' => 0,
+            'wholesalePrice' => 0,
+            'retailPrice' => 0,
+            'alert' => 0,
+        ];
     }
 
     /**
@@ -139,17 +134,14 @@ class ProductStockMovementController extends Controller
      */
     private function addItemDraft(ProductStockItemsDraft $model, array $data, $souce = ProductStockItemsDraft::SOURCE_MOVEMENT)
     {
+        Yii::$app->response->format = Response::FORMAT_JSON;
         $model->load($data);
         $model->source = $souce;
-        $data = ['error' => false, 'message' => 'success'];
         if ($model->save()) {
-            $data = ['error' => false, 'message' => 'success'];
-        } else {
-            $data = ['error' => true, 'message' => ActiveForm::validate($model)];
+            return ['error' => false, 'message' => 'success'];
         }
 
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return $data;
+        return ['error' => true, 'message' => ActiveForm::validate($model)];
     }
 
     public function actionGetProductPrice()
@@ -170,8 +162,6 @@ class ProductStockMovementController extends Controller
             $model->load(Yii::$app->request->post());
             return $this->redirect(['transfer-create', 'outlet' => Utility::encrypt($model->transferOutlet)]);
         }
-
-
         return $this->render('_outlet', [
             'model' => $model
         ]);
@@ -181,9 +171,7 @@ class ProductStockMovementController extends Controller
     {
 
         $errors = [];
-
-        $productStockItemsDraft = ProductStockItemsDraft::find()
-            ->where([
+        $productStockItemsDraft = ProductStockItemsDraft::find()->where([
                 'user_id' => yii::$app->user->getid(),
                 'source' => productstockitemsdraft::SOURCE_MOVEMENT,
                 'type' => productstockitemsdraft::TYPE_INSERT])
@@ -227,14 +215,14 @@ class ProductStockMovementController extends Controller
                 $lastRecord += $record->product_stock_id;
             }
 
-            $outlet =  Outlet::findOne($model->transferOutlet);
+            $outlet = Outlet::findOne($model->transferOutlet);
 
             $productStock = new ProductStock();
             $productStock->type = ProductStock::TYPE_RECEIVED;
             $productStock->invoice_no = Utility::genInvoice($lastRecord, 'STOR-');
             $productStock->setScenario('stock');
             $productStock->user_id = Yii::$app->user->id;
-            $productStock->params = Json::encode(['transferOutlet'=>$outlet->name, 'ref'=>$model->product_stock_outlet_id]);
+            $productStock->params = Json::encode(['transferOutlet' => $outlet->name, 'ref' => $model->product_stock_outlet_id]);
             $productStock->status = ProductStock::STATUS_PENDING;
             if ($productStock->save()) {
                 $productStockPk = $productStock->product_stock_id;
@@ -416,11 +404,11 @@ class ProductStockMovementController extends Controller
         if (Yii::$app->request->isPost) {
             $data = Yii::$app->request->post();
             if (Yii::$app->request->post('ProductStockItemsDraft')) {
-            //if (isset($data['ProductStockItemsDraft'])) {
+                //if (isset($data['ProductStockItemsDraft'])) {
                 $model->load(Yii::$app->request->post());
-                $existItems = ProductStockItemsDraft::find()->where(['size_id'=>$model, 'outletId'=>$model->outletId])->one();
-                if($existItems){
-                    $existItems->new_quantity+= $model->new_quantity;
+                $existItems = ProductStockItemsDraft::find()->where(['size_id' => $model, 'outletId' => $model->outletId])->one();
+                if ($existItems) {
+                    $existItems->new_quantity += $model->new_quantity;
                     $priceQuantity = ProductOutletUtility::getPriceWthQuantityBySize($model->size_id, $outlet);
                     $availableQty = $priceQuantity['quantity'];
                     if ($existItems->new_quantity > $priceQuantity['quantity']) {

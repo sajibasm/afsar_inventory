@@ -57,12 +57,12 @@ class SalaryHistoryController extends Controller
      * @return bool|\yii\web\Response
      * @throws \yii\web\BadRequestHttpException
      */
-    public function beforeAction($event){
-        if(Yii::$app->asm->has()){
+    public function beforeAction($event)
+    {
+        if (Yii::$app->asm->has()) {
             return parent::beforeAction($event);
-        }else{
-            return Yii::$app->user->isGuest? $this->redirect(['/site/login']): $this->redirect(['/site/permission']);
         }
+        return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
     }
 
     public function actionView($id)
@@ -73,10 +73,10 @@ class SalaryHistoryController extends Controller
 
         $model = $this->findModel(Utility::decrypt($id));
 
-        if($model->status==SalaryHistory::STATUS_PENDING){
+        if ($model->status == SalaryHistory::STATUS_PENDING) {
 
-            if($model->paymentType->type==PaymentType::TYPE_DEPOSIT){
-                $json = (object) Json::decode($model->extra);
+            if ($model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
+                $json = (object)Json::decode($model->extra);
                 $model->bank_id = $json->bank_id;
                 $model->branch_id = $json->branch_id;
             }
@@ -101,32 +101,32 @@ class SalaryHistoryController extends Controller
         $models = [];
         $salaryModels = [];
 
-        if(empty($employeeIds)){
+        if (empty($employeeIds)) {
             $sql = "SELECT * FROM employee ORDER BY full_name";
             $sql2 = "SELECT employee_id, withdraw_amount as withdraw FROM salary_history WHERE month={$month} AND year={$year}";
-        }else{
+        } else {
             $ids = implode(',', $employeeIds);
             $sql = "SELECT * FROM employee WHERE id IN ($ids) ORDER BY full_name";
             $sql2 = "SELECT employee_id, withdraw_amount as withdraw FROM salary_history WHERE month={$month} AND year={$year} AND employee_id IN ($ids)";
         }
 
         $records = Yii::$app->db->createCommand($sql2)->queryAll();
-        foreach ($records as $record){
-            if(isset($salaryModels[$record['employee_id']])){
-                $salaryModels[$record['employee_id']]['withdraw'] +=$record['withdraw'];
-            }else{
+        foreach ($records as $record) {
+            if (isset($salaryModels[$record['employee_id']])) {
+                $salaryModels[$record['employee_id']]['withdraw'] += $record['withdraw'];
+            } else {
                 $salaryModels[$record['employee_id']]['withdraw'] = $record['withdraw'];
             }
         }
 
         $records = Yii::$app->db->createCommand($sql)->queryAll();
-        foreach ($records as $record){
-            $withdraw = isset($salaryModels[$record['id']]['withdraw'])?$salaryModels[$record['id']]['withdraw']:0;
-            $models[] =[
-                'name'=>$record['full_name'],
-                'salary'=>(float) $record['salary'],
-                'withdraw'=>(float) $withdraw,
-                'remaining'=>(float) ($record['salary']-$withdraw)
+        foreach ($records as $record) {
+            $withdraw = isset($salaryModels[$record['id']]['withdraw']) ? $salaryModels[$record['id']]['withdraw'] : 0;
+            $models[] = [
+                'name' => $record['full_name'],
+                'salary' => (float)$record['salary'],
+                'withdraw' => (float)$withdraw,
+                'remaining' => (float)($record['salary'] - $withdraw)
             ];
         }
 
@@ -138,8 +138,8 @@ class SalaryHistoryController extends Controller
         );
 
 
-        $title = " # SALARY SHEET: " . CommonUtility::getMonthName($month). ", ".$year;
-        $filename = "salary_sheet_".CommonUtility::getMonthName($month)."_".$year.'.pdf';
+        $title = " # SALARY SHEET: " . CommonUtility::getMonthName($month) . ", " . $year;
+        $filename = "salary_sheet_" . CommonUtility::getMonthName($month) . "_" . $year . '.pdf';
 
         $watermark = "SALARY SHEET";
         //$watermark = AppConfig::getStoreName();
@@ -157,7 +157,7 @@ class SalaryHistoryController extends Controller
             'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
             'options' => ['title' => $title],
             'methods' => [
-                'SetFooter' => [ 'Print at: '.DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
+                'SetFooter' => ['Print at: ' . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
             ]
         ]);
 
@@ -178,14 +178,14 @@ class SalaryHistoryController extends Controller
     public function actionSlip()
     {
         $data = Yii::$app->request->get();
-        $this->redirect(['generate', 'data'=>Utility::encrypt(Json::encode($data))]);
+        $this->redirect(['generate', 'data' => Utility::encrypt(Json::encode($data))]);
     }
 
     public function actionPayrollSlip()
     {
 
         $model = new SalaryHistory();
-        if(Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             //$model->load(Yii::$app->request->post());
             //return $this->generateSheet($model->month, $model->year, $model->employee_id);
         }
@@ -206,6 +206,7 @@ class SalaryHistoryController extends Controller
             'dataProvider' => $dataProvider,
         ]);
     }
+
     /**
      * Lists all SalaryHistory models.
      * @return mixed
@@ -226,7 +227,7 @@ class SalaryHistoryController extends Controller
      */
     public function actionCheckSalary()
     {
-        if(Yii::$app->request->isAjax){
+        if (Yii::$app->request->isAjax) {
 
             Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -234,17 +235,17 @@ class SalaryHistoryController extends Controller
             $year = date('Y');
             $customerId = Yii::$app->request->post('employeeId');
 
-            if(Yii::$app->request->post('month')){
+            if (Yii::$app->request->post('month')) {
                 $month = Yii::$app->request->post('month');
             }
 
-            if(Yii::$app->request->post('year')){
+            if (Yii::$app->request->post('year')) {
                 $year = Yii::$app->request->post('year');
             }
 
             $response = EmployeeUtility::getRemainingSalary($customerId, $month, $year);
 
-            return ['success' => true, 'paid' =>$response['paid'], 'salary'=>$response['salary'], 'remaining'=>$response['remaining']];
+            return ['success' => true, 'paid' => $response['paid'], 'salary' => $response['salary'], 'remaining' => $response['remaining']];
         }
     }
 
@@ -261,52 +262,52 @@ class SalaryHistoryController extends Controller
         $expenseType = '';
 
 
-        if(Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
 
-            $newType = PaymentType::find()->where(['payment_type_id'=>$model->payment_type])->one()->type;
+            $newType = PaymentType::find()->where(['payment_type_id' => $model->payment_type])->one()->type;
 
             $connection = Yii::$app->db;
             $transaction = $connection->beginTransaction();
 
             try {
 
-                if($model->save()){
+                if ($model->save()) {
 
-                    if($type==$newType){
+                    if ($type == $newType) {
 
-                        if($type==PaymentType::TYPE_DEPOSIT){
+                        if ($type == PaymentType::TYPE_DEPOSIT) {
 
                             $expenseType = Expense::TYPE_DEPOSIT;
 
-                            $deposit = DepositBook::find()->where(['reference_id'=>$model->id , 'source'=>DepositBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
+                            $deposit = DepositBook::find()->where(['reference_id' => $model->id, 'source' => DepositBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
                             $deposit->deposit_out = $model->withdraw_amount;
-                            if(!$deposit->save()){
+                            if (!$deposit->save()) {
                                 $hasError = false;
                             }
 
-                        }else{
+                        } else {
 
                             $expenseType = Expense::TYPE_CASH;
 
-                            $cash = CashBook::find()->where(['reference_id'=>$model->id, 'source'=>CashBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
+                            $cash = CashBook::find()->where(['reference_id' => $model->id, 'source' => CashBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
                             $cash->cash_out = $model->withdraw_amount;
-                            if($cash->save()){
+                            if ($cash->save()) {
                                 $hasError = false;
                             }
 
                         }
 
-                    }else{
+                    } else {
 
-                        if($newType==PaymentType::TYPE_DEPOSIT){
+                        if ($newType == PaymentType::TYPE_DEPOSIT) {
 
                             $expenseType = Expense::TYPE_DEPOSIT;
 
-                            $cash = CashBook::find()->where(['reference_id'=>$model->id, 'source'=>CashBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
+                            $cash = CashBook::find()->where(['reference_id' => $model->id, 'source' => CashBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
                             $cash->cash_out = 0;
-                            $cash->remarks = 'Update '.$cash->remarks;
-                            if($cash->save()){
+                            $cash->remarks = 'Update ' . $cash->remarks;
+                            if ($cash->save()) {
 
                                 $deposit = new DepositBook();
                                 $deposit->bank_id = $model->bank_id;
@@ -318,22 +319,22 @@ class SalaryHistoryController extends Controller
                                 $deposit->reference_id = $model->id;
                                 $deposit->source = DepositBook::SOURCE_EMPLOYEE_ADV_SALARY;
                                 $deposit->remarks = $model->remarks;
-                                if(!$deposit->save()){
+                                if (!$deposit->save()) {
                                     $hasError = true;
                                 }
-                            }else{
+                            } else {
                                 $hasError = true;
                             }
 
-                        }else{
+                        } else {
 
                             $expenseType = Expense::TYPE_CASH;
 
-                            $deposit = DepositBook::find()->where(['reference_id'=>$model->id, 'source'=>CashBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
+                            $deposit = DepositBook::find()->where(['reference_id' => $model->id, 'source' => CashBook::SOURCE_EMPLOYEE_ADV_SALARY])->one();
 
                             $deposit->deposit_out = 0;
-                            $deposit->remarks = 'Update '.$deposit->remarks;
-                            if($deposit->save()){
+                            $deposit->remarks = 'Update ' . $deposit->remarks;
+                            if ($deposit->save()) {
 
                                 $cash = new CashBook();
                                 $cash->cash_in = 0;
@@ -342,34 +343,34 @@ class SalaryHistoryController extends Controller
                                 $cash->reference_id = $model->id;
                                 $cash->remarks = $model->remarks;
 
-                                if(!$cash->save()){
+                                if (!$cash->save()) {
                                     $hasError = true;
                                 }
-                            }else{
+                            } else {
                                 $hasError = true;
                             }
                         }
                     }
 
-                    $expense = Expense::find()->where(['ref_id'=>$model->id, 'expense_type_id'=>ExpenseType::TYPE_EMPLOYEE_EXPENSE])->one();
+                    $expense = Expense::find()->where(['ref_id' => $model->id, 'expense_type_id' => ExpenseType::TYPE_EMPLOYEE_EXPENSE])->one();
                     $expense->expense_amount = $model->withdraw_amount;
                     $expense->type = $expenseType;
                     $expense->expense_remarks = $model->remarks;
-                    if(!$expense->save()){
+                    if (!$expense->save()) {
                         $hasError = true;
                     }
 
-                }else{
+                } else {
                     $hasError = true;
                 }
 
-                if($hasError){
+                if ($hasError) {
                     $transaction->rollBack();
-                }else{
+                } else {
                     $transaction->commit();
                 }
 
-            }catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $transaction->rollBack();
                 throw $e;
             }
@@ -401,20 +402,18 @@ class SalaryHistoryController extends Controller
         $hasError = false;
         $errorMessage = '';
 
-
         if (Yii::$app->request->isPost) {
-
             $model->load(Yii::$app->request->post());
-            $model->remaining_salary = (EmployeeUtility::getRemainingSalary($model->employee_id, date('m'), date('Y')) - $model->withdraw_amount);
-
+            $totalRemaining = EmployeeUtility::getRemainingSalary($model->employee_id, date('m'), date('Y'));
+            $model->remaining_salary = ($totalRemaining['remaining'] - $model->withdraw_amount);
             $connection = Yii::$app->db;
             $transaction = $connection->beginTransaction();
             try {
-                if($model->save()) {
+                if ($model->save()) {
 
                     $paymentType = PaymentType::findOne($model->payment_type);
 
-                    if($paymentType->type==PaymentType::TYPE_DEPOSIT){
+                    if ($paymentType->type == PaymentType::TYPE_DEPOSIT) {
 
                         $deposit = new DepositBook();
                         $deposit->bank_id = $model->bank_id;
@@ -426,7 +425,7 @@ class SalaryHistoryController extends Controller
                         $deposit->reference_id = $model->id;
                         $deposit->source = DepositBook::SOURCE_EMPLOYEE_ADV_SALARY;
                         $deposit->remarks = $model->remarks;
-                        if($deposit->save()){
+                        if ($deposit->save()) {
 
                             $expense = new Expense();
                             $expense->expense_type_id = ExpenseType::TYPE_EMPLOYEE_EXPENSE;
@@ -435,14 +434,14 @@ class SalaryHistoryController extends Controller
                             $expense->user_id = $model->user_id;
                             $expense->expense_amount = $model->withdraw_amount;
                             $expense->expense_remarks = $model->remarks;
-                            if(!$expense->save()){
+                            if (!$expense->save()) {
                                 $hasError = true;
                             }
-                        }else{
+                        } else {
                             $hasError = true;
                         }
 
-                    }else{
+                    } else {
 
                         $cash = new CashBook();
                         $cash->cash_in = 0;
@@ -451,7 +450,7 @@ class SalaryHistoryController extends Controller
                         $cash->reference_id = $model->id;
                         $cash->remarks = $model->remarks;
 
-                        if($cash->save()){
+                        if ($cash->save()) {
 
                             $expense = new Expense();
                             $expense->expense_type_id = ExpenseType::TYPE_EMPLOYEE_EXPENSE;
@@ -460,39 +459,39 @@ class SalaryHistoryController extends Controller
                             $expense->user_id = $model->user_id;
                             $expense->expense_amount = $model->withdraw_amount;
                             $expense->expense_remarks = $model->remarks;
-                            if(!$expense->save()){
-                                $errorMessage = ["Model"=>'Expense', "Message"=>$expense->getErrors()];
+                            if (!$expense->save()) {
+                                $errorMessage = ["Model" => 'Expense', "Message" => $expense->getErrors()];
                                 $hasError = true;
                             }
-                        }else{
-                            $errorMessage = ["Model"=>'Cash', "Message"=>$cash->getErrors()];
+                        } else {
+                            $errorMessage = ["Model" => 'Cash', "Message" => $cash->getErrors()];
                             $hasError = true;
                         }
                     }
-                }else{
-                    $errorMessage = ["Model"=>'SalaryHistory', "Message"=>$model->getErrors()];
+                } else {
+                    $errorMessage = ["Model" => 'SalaryHistory', "Message" => $model->getErrors()];
                     $hasError = true;
                 }
 
-                if($hasError){
+                if ($hasError) {
                     CommonUtility::debug($errorMessage);
                     $transaction->rollBack();
-                }else{
+                } else {
                     $transaction->commit();
                 }
 
 
-            }catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $transaction->rollBack();
                 throw $e;
             }
 
             return $this->redirect(['index']);
-        } else {
-            return $this->render('withdraw', [
-                'model' => $model,
-            ]);
         }
+
+        return $this->render('withdraw', [
+            'model' => $model,
+        ]);
     }
 
     public function actionApproved($id)
@@ -501,8 +500,8 @@ class SalaryHistoryController extends Controller
         $response = [];
         $hasError = false;
         $model = $this->findModel(Utility::decrypt($id));
-        if($model->paymentType->type==PaymentType::TYPE_DEPOSIT){
-            $json = (object) Json::decode($model->extra);
+        if ($model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
+            $json = (object)Json::decode($model->extra);
             $model->bank_id = $json->bank_id;
             $model->branch_id = $json->branch_id;
         }
@@ -517,15 +516,15 @@ class SalaryHistoryController extends Controller
         try {
 
 
-            if($model->save()) {
+            if ($model->save()) {
 
                 $expense = Expense::find()->where(['expense_type_id' => ExpenseType::TYPE_LC, 'ref_id' => $model->id])->one();
 
-                if($expense){
+                if ($expense) {
                     $expense->ex = Expense::STATUS_APPROVED;
                     $expense->expense_amount = $model->withdraw_amount;
                     $expense->updated_by = Yii::$app->user->getId();
-                }else{
+                } else {
                     $expense = new Expense();
                     $expense->extra = $model->extra;
                     $expense->source = Expense::SOURCE_EXTERNAL;
@@ -571,27 +570,27 @@ class SalaryHistoryController extends Controller
                 }
             }
 
-            if($hasError){
+            if ($hasError) {
                 $transaction->rollBack();
-            }else{
+            } else {
                 $transaction->commit();
             }
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             $transaction->rollBack();
             throw $e;
         }
 
-        if($hasError){
-            $response =  ['status'=>'Has error found', 'Error'=>true];
-        }else{
-            $response =  ['status'=>'Done', 'Error'=>false];
+        if ($hasError) {
+            $response = ['status' => 'Has error found', 'Error' => true];
+        } else {
+            $response = ['status' => 'Done', 'Error' => false];
         }
 
         if (Yii::$app->request->isAjax) {
             \Yii::$app->response->format = Response::FORMAT_JSON;
             return $response;
-        }else{
+        } else {
             $message = "Amount # " . $model->withdraw_amount . " Employee: " . $model->employee->full_name . " has been approved.";
             FlashMessage::setMessage($message, "Approved Salary", "info");
             return $this->redirect(['index']);
@@ -608,47 +607,47 @@ class SalaryHistoryController extends Controller
     {
         $model = new SalaryHistory();
         $model->status = SalaryHistory::STATUS_PENDING;
-        $model->extra = Json::encode(['bank_id'=>0, 'branch_id'=>0]);
+        $model->extra = Json::encode(['bank_id' => 0, 'branch_id' => 0]);
         $model->user_id = Yii::$app->user->getId();
         $model->setScenario('monthlySalary');
         $addRules = false;
 
-        if(Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
 
 
             if ($model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
-                if (empty($model->bank_id) || empty($model->branch_id) ) {
+                if (empty($model->bank_id) || empty($model->branch_id)) {
                     $addRules = true;
-                    $model->payment_type=0;
-                    $model->bank_id=0;
-                    $model->branch_id=0;
+                    $model->payment_type = 0;
+                    $model->bank_id = 0;
+                    $model->branch_id = 0;
                     $model->addError('bank_id', 'Bank Can\'t be Empty');
                     $model->addError('branch_id', 'Branch Can\'t be Empty');
-                }else{
-                    $model->extra = Json::encode(['bank_id'=>$model->bank_id, 'branch_id'=>$model->branch_id]);
+                } else {
+                    $model->extra = Json::encode(['bank_id' => $model->bank_id, 'branch_id' => $model->branch_id]);
                 }
             }
 
-            if($addRules==false){
+            if ($addRules == false) {
 
                 $amount = $model->remaining_salary;
 
-                $totalPaid = ($model->withdraw_amount+$model->remaining_salary);
+                $totalPaid = ($model->withdraw_amount + $model->remaining_salary);
                 $response = EmployeeUtility::getRemainingSalary($model->employee_id, $model->month, $model->year);
 
-                if($response['remaining']==0){
+                if ($response['remaining'] == 0) {
                     $model->addError('remaining_salary', 'Already Paid Full Amount');
-                }else if($totalPaid>$response['salary']){
-                    $model->addError('remaining_salary', 'Payable amount ('.CommonUtility::getMonthName($model->month).', '.$model->year.') is: '.$response['remaining']);
-                }else {
-                    $model->withdraw_amount = $model->remaining_salary ;
-                    $model->remaining_salary = $response['salary'] -  $totalPaid;
-                    if($model->save()){
+                } else if ($totalPaid > $response['salary']) {
+                    $model->addError('remaining_salary', 'Payable amount (' . CommonUtility::getMonthName($model->month) . ', ' . $model->year . ') is: ' . $response['remaining']);
+                } else {
+                    $model->withdraw_amount = $model->remaining_salary;
+                    $model->remaining_salary = $response['salary'] - $totalPaid;
+                    if ($model->save()) {
 
-                        FlashMessage::setMessage("New Payment Employee: ".$model->employee->full_name." Amount #".$amount." has been created", "Employee Payment", "success");
-                        if(Helper::checkRoute('approved')){
-                            return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
+                        FlashMessage::setMessage("New Payment Employee: " . $model->employee->full_name . " Amount #" . $amount . " has been created", "Employee Payment", "success");
+                        if (Helper::checkRoute('approved')) {
+                            return $this->redirect(['approved', 'id' => Utility::encrypt($model->id)]);
                         }
                         return $this->redirect(['advance-salary']);
                     }
@@ -673,47 +672,47 @@ class SalaryHistoryController extends Controller
         $model = $this->findModel(Utility::decrypt($id));
 
         $model->status = SalaryHistory::STATUS_PENDING;
-        $model->extra = Json::encode(['bank_id'=>0, 'branch_id'=>0]);
+        $model->extra = Json::encode(['bank_id' => 0, 'branch_id' => 0]);
         $model->user_id = Yii::$app->user->getId();
         $model->setScenario('monthlySalary');
         $addRules = false;
 
-        if(Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
 
 
             if ($model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
-                if (empty($model->bank_id) || empty($model->branch_id) ) {
+                if (empty($model->bank_id) || empty($model->branch_id)) {
                     $addRules = true;
-                    $model->payment_type=0;
-                    $model->bank_id=0;
-                    $model->branch_id=0;
+                    $model->payment_type = 0;
+                    $model->bank_id = 0;
+                    $model->branch_id = 0;
                     $model->addError('bank_id', 'Bank Can\'t be Empty');
                     $model->addError('branch_id', 'Branch Can\'t be Empty');
-                }else{
-                    $model->extra = Json::encode(['bank_id'=>$model->bank_id, 'branch_id'=>$model->branch_id]);
+                } else {
+                    $model->extra = Json::encode(['bank_id' => $model->bank_id, 'branch_id' => $model->branch_id]);
                 }
             }
 
-            if($addRules==false){
+            if ($addRules == false) {
 
                 $amount = $model->remaining_salary;
 
-                $totalPaid = ($model->withdraw_amount+$model->remaining_salary);
+                $totalPaid = ($model->withdraw_amount + $model->remaining_salary);
                 $response = EmployeeUtility::getRemainingSalary($model->employee_id, $model->month, $model->year);
 
-                if($response['remaining']==0){
+                if ($response['remaining'] == 0) {
                     $model->addError('remaining_salary', 'Already Paid Full Amount');
-                }else if($totalPaid>$response['salary']){
-                    $model->addError('remaining_salary', 'Payable amount ('.CommonUtility::getMonthName($model->month).', '.$model->year.') is: '.$response['remaining']);
-                }else {
-                    $model->withdraw_amount = $model->remaining_salary ;
-                    $model->remaining_salary = $response['salary'] -  $totalPaid;
-                    if($model->save()){
+                } else if ($totalPaid > $response['salary']) {
+                    $model->addError('remaining_salary', 'Payable amount (' . CommonUtility::getMonthName($model->month) . ', ' . $model->year . ') is: ' . $response['remaining']);
+                } else {
+                    $model->withdraw_amount = $model->remaining_salary;
+                    $model->remaining_salary = $response['salary'] - $totalPaid;
+                    if ($model->save()) {
 
-                        FlashMessage::setMessage("New Payment Employee: ".$model->employee->full_name." Amount #".$amount." has been created", "Employee Payment", "success");
-                        if(Helper::checkRoute('approved')){
-                            return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
+                        FlashMessage::setMessage("New Payment Employee: " . $model->employee->full_name . " Amount #" . $amount . " has been created", "Employee Payment", "success");
+                        if (Helper::checkRoute('approved')) {
+                            return $this->redirect(['approved', 'id' => Utility::encrypt($model->id)]);
                         }
                         return $this->redirect(['index']);
                     }

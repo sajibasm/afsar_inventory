@@ -87,11 +87,9 @@ class SalesDraftController extends Controller
     public function actionCreate()
     {
         $model = new SalesDraft();
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->sales_details_id]);
         }
-
 
         return $this->render('create', [
             'model' => $model,
@@ -108,7 +106,6 @@ class SalesDraftController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->sales_details_id]);
         }
@@ -117,12 +114,11 @@ class SalesDraftController extends Controller
                 'model' => $model,
             ]);
 
-        }else{
-            return $this->render('_salesDraft', [
-                'model' => $model,
-            ]);
-
         }
+
+        return $this->render('_salesDraft', [
+            'model' => $model,
+        ]);
     }
 
     /**
