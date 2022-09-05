@@ -106,11 +106,10 @@ class SalesController extends Controller
                 foreach ($brands as $brand) {
                     $out[] = ['id' => $brand->brand_id, 'name' => $brand->brand_name];
                 }
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
         }
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionGetSizeListByBrand()
@@ -125,11 +124,10 @@ class SalesController extends Controller
                 foreach ($sizes as $size) {
                     $out[] = ['id' => $size->size_id, 'name' => $size->size_name];
                 }
-                echo Json::encode(['output' => $out, 'selected' => '']);
-                return;
+                return Json::encode(['output' => $out, 'selected' => '']);
             }
         }
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionGetProductPrice()
@@ -140,30 +138,26 @@ class SalesController extends Controller
             $request = Yii::$app->request->post();
             if (isset($request['depdrop_parents'][0]) && $request['depdrop_parents'][0] != 0) {
                 $sizeId = $request['depdrop_parents'][0];
-
                 $stockPrice = ProductUtility::getProductStockPrice($sizeId);
                 $price = $stockPrice;
-
                 if ($price) {
                     $out[] = ['id' => $price->wholesale_price, 'name' => 'Wholesale: ' . $price->wholesale_price];
                     $out[] = ['id' => $price->retail_price, 'name' => 'Retail: ' . $price->retail_price];
                     if ($this->isCustomPriceEnable) {
                         $out[] = ['id' => 'custom', 'name' => 'Custom Price'];
                     }
-
-                    echo Json::encode(['output' => $out, 'selected' => '']);
-                    return;
+                    return Json::encode(['output' => $out, 'selected' => '']);
                 }
             }
         }
 
-        echo Json::encode(['output' => '', 'selected' => '']);
+        return Json::encode(['output' => '', 'selected' => '']);
     }
 
     public function actionCheckAvailableProduct()
     {
+        Yii::$app->response->format = Response::FORMAT_JSON;
         $response = [];
-
         if (Yii::$app->request->isPost) {
             $request = Yii::$app->request->post();
             if (!empty($request['size_id']) && !empty($request['outletId'])) {
@@ -177,8 +171,6 @@ class SalesController extends Controller
                 ];
             }
         }
-
-        Yii::$app->response->format = Response::FORMAT_JSON;
         return $response;
     }
 
@@ -206,15 +198,15 @@ class SalesController extends Controller
                 'lowestPrice' => doubleval(floor($lowestPrice)),
                 'message' => 'Quantity Available: ' . doubleval($qty) . ''
             ];
-        } else {
-            return [
-                'error' => false,
-                'costAmount' => $costPrice,
-                'quantity' => doubleval($qty),
-                'lowestPrice' => doubleval(floor($lowestPrice)),
-                'message' => 'Quantity Available: ' . doubleval($qty) . ''
-            ];
         }
+
+        return [
+            'error' => false,
+            'costAmount' => $costPrice,
+            'quantity' => doubleval($qty),
+            'lowestPrice' => doubleval(floor($lowestPrice)),
+            'message' => 'Quantity Available: ' . doubleval($qty) . ''
+        ];
     }
 
     public function actionOutlet()
@@ -227,9 +219,8 @@ class SalesController extends Controller
                 $model->load(Yii::$app->request->post());
                 if (!empty($model->outletId)) {
                     return $this->redirect(['create', 'outlet' => Utility::encrypt($model->outletId)]);
-                } else {
-                    $model->addError('outletId', 'Please select a outlet');
                 }
+                $model->addError('outletId', 'Please select a outlet');
             }
         } else {
             return $this->redirect(['create', 'outlet' => Utility::encrypt(array_key_first($outlets))]);
@@ -243,9 +234,7 @@ class SalesController extends Controller
     public function actionCustomerDetails()
     {
         if (Yii::$app->request->isAjax) {
-
             $request = Yii::$app->request->post();
-
             if (isset($request['Sales']['client_id'])) {
                 $client = Client::findOne($request['Sales']['client_id']);
                 Yii::$app->response->format = Response::FORMAT_JSON;
