@@ -242,7 +242,6 @@ class ProductStockController extends Controller
 
                 $productStock->load($data);
                 $transaction = Yii::$app->db->beginTransaction();
-
                 try {
 
                     if ($productStock->save()) {
@@ -255,7 +254,6 @@ class ProductStockController extends Controller
                         $transaction->rollBack();
                     }
                 } catch (\Exception $e) {
-                    dd($e);
                     $transaction->rollBack();
                 }
             }
@@ -461,11 +459,11 @@ class ProductStockController extends Controller
                         }
                     }
                 } catch (\Exception $exception) {
-                    dd($exception);
                     $transaction->rollBack();
                 }
             }
         }
+
 
         return $this->render('transfer-to-outlet/create', [
             'model' => $model,
@@ -540,6 +538,7 @@ class ProductStockController extends Controller
         $dataProvider = $searchModel->searchByType();
 
         if (Yii::$app->request->isPost) {
+
             if (Yii::$app->request->post('ProductStockItemsDraft')) {
                 $data = Yii::$app->request->post();
                 $sizeId = $data['ProductStockItemsDraft']['size_id'];
@@ -547,8 +546,6 @@ class ProductStockController extends Controller
                 if ($qty > 0) {
                     $data['ProductStockItemsDraft']['type'] = ProductStockItemsDraft::TYPE_INSERT;
                     return $this->addItemDraft($model, $data, ProductStockItemsDraft::SOURCE_TRANSFER);
-                } else {
-                    //TODO SET Error
                 }
             } else {
                 $data = Yii::$app->request->post();
@@ -567,18 +564,14 @@ class ProductStockController extends Controller
                             $message = "Stock Transfer# " . $productStock->invoice_no . "has been created.";
                             FlashMessage::setMessage($message, "Stock Transfer To Outlet", "info");
                             return $this->redirect(['index']);
-
                         }
                     }
-
-                    dd($productStock->getErrors());
-
                 } catch (\Exception $exception) {
-                    dd($exception);
                     $transaction->rollBack();
                 }
             }
         }
+
 
         return $this->render('transfer/create', [
             'model' => $model,

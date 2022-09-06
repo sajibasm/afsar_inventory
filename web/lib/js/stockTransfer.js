@@ -59,6 +59,7 @@ $(function () {
 
 
     $('body').on('keypress', '#productstockitemsdraft-new_quantity', function (event) {
+
         var keycode = (event.keyCode ? event.keyCode : event.which);
         if (keycode == '13') {
             //formAjaxSell
@@ -101,110 +102,4 @@ $(function () {
         }
     });
 
-
-// $('body').on('beforeSubmit', 'form#formAjaxSaveStock', function (event) {
-//
-//
-//     event.preventDefault();
-//     var r = confirm("Do you want to create stock transfer?");
-//     if (r === false) {
-//         return false;
-//     }
-//
-//     var form = $('#formAjaxSaveStock');
-//     var type = $('#productstock-type').val();
-//
-//     var totalItem = $('#productstockitemsdraft-totalquantity').val();
-//
-//     if (totalItem == 0) {
-//         $('#cartError').toggle(700);
-//         return false;
-//     }
-//     return true;
-// });
-
-
-// //Add Product Stock Action
-// $('body').on('beforeSubmit', 'form#formAjaxStock', function (event) {
-//
-//     event.preventDefault();
-//
-//     var form = $(this);
-//
-//     console.log(form.serialize());
-//     // return false if form still have some validation errors
-//     if (form.find('.has-error').length) {
-//         console.log("Error");
-//         console.log(form);
-//
-//         //return false;
-//     }
-//
-//     // submit form
-//     $.ajax({
-//         url: form.attr('action'),
-//         type: 'post',
-//         data: form.serialize(),
-//         success: function (response) {
-//
-//             if (response.error) {
-//                 $("#errorSummary").empty();
-//                 $("#errorSummary").show();
-//
-//                 var list = $("#errorSummary").append('<p>Please fix the following errors:</p><ul></ul>').find('ul');
-//                 $.each(response.message, function (index, value) {
-//                     list.append('<li>' + value + '</li>');
-//                 });
-//
-//             } else {
-//                 $("#errorSummary").hide();
-//                 $.pjax.reload({container: '#stock', 'timeout': 10000});
-//             }
-//         }
-//     });
-//     return false;
-// });
-//
-//
-// $('body').on('beforeSubmit', 'form#formAjaxStockUpdate', function () {
-//     var form = $(this);
-//     //console.log(form.serialize());
-//     // return false if form still have some validation errors
-//     if (form.find('.has-error').length) {
-//         return false;
-//     }
-//
-//     // submit form
-//     $.ajax({
-//         url: form.attr('action'),
-//         type: 'post',
-//         data: form.serialize(),
-//         success: function (response) {
-//
-//             if (response.error) {
-//
-//                 $("#errorSummary").empty();
-//
-//                 $("#errorSummary").show();
-//
-//                 var list = $("#errorSummary").append('<p>Please fix the following errors:</p><ul></ul>').find('ul');
-//
-//                 $.each(response.message, function (index, value) {
-//                     list.append('<li>' + value + '</li>');
-//                 });
-//
-//             } else {
-//                 $("#errorSummary").hide();
-//                 $("#modal .modal-body").load(form.attr('action'), function () {
-//                     $("#modal").modal("show");
-//                 });
-//                 $.pjax.reload({container: '#stock', 'timeout': 10000}); // Reload GridView
-//             }
-//         }
-//     });
-//
-//     return false;
-
-
-
- });
+});

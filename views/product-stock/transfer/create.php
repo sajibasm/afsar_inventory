@@ -20,11 +20,9 @@ use yii\widgets\Pjax;
     .panel {
         margin-bottom: 0px !important;
     }
-
     .break {
         margin-top: 10px;
     }
-
 </style>
 
 <?php
